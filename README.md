@@ -23,7 +23,7 @@ It is hoped that this restriction will eventually be removed, which would involv
 ## Role Variables
 
 See `defaults/main.yml`.
-`aiida_computer` will be merged with `aiida_computer_defaults`, to create the full input variable set. 
+`aiida_computer` will be merged with `aiida_computer_defaults`, to create the full input variable set.
 
 ## Example Playbook
 
@@ -81,4 +81,3 @@ molecule test  # runs tests
 ## License
 
 MIT
-

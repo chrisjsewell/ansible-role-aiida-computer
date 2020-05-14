@@ -1,0 +1,17 @@
+---
+# For use with pre-commit.
+# See usage instructions at https://pre-commit.com
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v2.2.3
+  hooks:
+  - id: trailing-whitespace
+  - id: end-of-file-fixer
+
+- repo: local
+  hooks:
+  - id: yamllint
+    name: yamllint
+    description: This hook runs yamllint.
+    entry: yamllint
+    language: system
+    types: [file, yaml]

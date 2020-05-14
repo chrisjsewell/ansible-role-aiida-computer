@@ -1,0 +1,32 @@
+---
+# Adapted from
+# - https://github.com/drhelius/travis-ansible-demo/blob/master/.travis.yml
+# - https://github.com/geerlingguy/ansible-role-docker/blob/master/.travis.yml
+language: python
+services:
+  - docker
+
+env:
+  global:
+    - ANSIBLE_ROLE: "aiida-computer"
+
+  matrix:
+    - name: aiida-core-1.2.1
+      env:
+        - DOCKER_IMAGE=aiidateam/aiida-core
+        - DOCKER_IMAGE_VERSION=1.2.1
+
+install:
+  - pip install -r requirements.txt
+
+before_script:
+  # Use actual Ansible Galaxy role name for the project directory.
+  - cd ../
+  - mv ansible-role-aiida-computer chrisjsewell.$ANSIBLE_ROLE
+  - cd chrisjsewell.$ANSIBLE_ROLE
+
+script:
+  - molecule test
+
+notifications:
+  webhooks: https://galaxy.ansible.com/api/v1/notifications/
