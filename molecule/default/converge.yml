@@ -1,0 +1,42 @@
+---
+- name: Converge
+  hosts: all
+
+  vars:
+    - run_tests: true
+
+  pre_tasks:
+
+    # - debug:
+    #     var: hostvars[inventory_hostname]
+
+    # TODO should this be handled a top-level
+    - name: Run container intialisation
+      shell: /sbin/my_init > /home/my_init.log
+      async: 60
+      poll: 0
+      changed_when: false
+
+    - name: Wait until intialisation complete
+      stat:
+        path: /opt/INIT_COMPLETED
+      register: stat_result
+      until: stat_result.stat.exists
+      retries: 100
+      delay: 2
+      changed_when: false
+
+    # - slurp:
+    #     src: /home/my_init.log
+    #   register: my_init_log
+    # - debug:
+    #     msg: "{{ my_init_log['content'] | b64decode }}"
+
+  roles:
+    - name: Test create local computer
+      role: "chrisjsewell.aiida-computer"
+      vars:
+        aiida_verdi_exec: /opt/conda/bin/verdi -p default
+      # become_user: aiida
+      environment:
+        AIIDA_PATH: /home/aiida/.aiida

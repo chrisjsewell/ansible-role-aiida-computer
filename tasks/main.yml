@@ -1,0 +1,127 @@
+---
+
+- name: Combine input variables with defaults
+  set_fact:
+    _aiida_computer: "{{ aiida_computer_defaults | combine(aiida_computer) }}"
+
+- name: Create template folder
+  file:
+    path: "{{ aiida_templates_folder }}"
+    state: directory
+    mode: 0755
+
+- name: "Check if the computer is already present; '{{ _aiida_computer.setup_label }}'"
+  shell: "{{ aiida_verdi_exec }} computer show {{ _aiida_computer.setup_label }}"
+  failed_when: false
+  changed_when: false
+  register: aiida_check_computer_exists
+
+- name: "Copy the computer setup inputs; '{{ _aiida_computer.setup_label }}'"
+  template:
+    src: "computer_setup.yml.j2"
+    dest: "{{ aiida_templates_folder }}/{{ _aiida_computer.setup_label }}.setup.yml"
+    mode: 0755
+  register: aiida_check_computer_setup
+
+- name: "Check for unhandled setup changes"
+  # there is no warning module, so instead we issue an ignored fail
+  fail:
+    msg: "The computer already exists but its setup information has changed."
+  ignore_errors: true
+  when: (aiida_check_computer_exists.rc == 0) and aiida_check_computer_setup.changed
+
+- name: "Setup the computer; '{{ _aiida_computer.setup_label }}'"
+  shell: |
+    {{ aiida_verdi_exec }} computer setup \
+      --non-interactive --config "{{ aiida_templates_folder }}/{{ _aiida_computer.setup_label }}.setup.yml"
+  when: aiida_check_computer_exists.rc != 0
+
+- name: "Copy the computer configuration; '{{ _aiida_computer.setup_label }}'"
+  template:
+    src: "computer_config_{{ _aiida_computer.setup_transport }}.yml.j2"
+    dest: "{{ aiida_templates_folder }}/{{ _aiida_computer.setup_label }}.config.yml"
+    mode: 0755
+  register: aiida_check_computer_config
+
+- name: "Ensure SSH home dir exists"
+  when: (_aiida_computer.config_auth_key is not none) or (_aiida_computer.config_proxy_auth_key is not none)
+  file:
+    path: "{{ ssh_home }}"
+    state: directory
+    mode: 0700
+
+- name: "Setup Proxy SSH Connection"
+  when: _aiida_computer.config_proxy_auth_key is not none
+  block:
+    - name: Copy SSH proxy key to host
+      copy:
+        src: "{{ _aiida_computer.config_proxy_auth_key }}"
+        dest: "{{ ssh_home }}/{{ _aiida_computer.setup_label }}.proxy.key"
+        mode: 0600
+    - name: Add SSH proxy config
+      blockinfile:
+        dest: '{{ ssh_home }}/config'
+        create: true
+        mode: 0700
+        marker: "# {mark} ANSIBLE MANAGED BLOCK {{ _aiida_computer.config_proxy_hostname }}"
+        block: |
+          Host {{ _aiida_computer.config_proxy_hostname }}
+            Hostname {{ _aiida_computer.config_proxy_hostname }}
+            User {{ _aiida_computer.config_proxy_username }}
+            Port {{ _aiida_computer.config_proxy_port }}
+            IdentityFile {{ ssh_home }}/{{ _aiida_computer.setup_label }}.proxy.key
+            AddKeysToAgent yes
+            ForwardAgent yes
+    # TODO try calling ssh-keyscan if config_proxy_host_key is none?
+    - name: Add known host for proxy
+      when: _aiida_computer.config_proxy_host_key is not none
+      known_hosts:
+        path: '{{ ssh_home }}/known_hosts'
+        name: '{{ _aiida_computer.config_proxy_hostname }}'
+        key: '{{ _aiida_computer.config_proxy_host_key }}'
+
+- name: "Setup SSH Connection"
+  when: _aiida_computer.config_auth_key is not none
+  block:
+    - name: Copy SSH key to host
+      copy:
+        src: "{{ _aiida_computer.config_auth_key }}"
+        dest: "{{ ssh_home }}/{{ _aiida_computer.setup_label }}.key"
+        mode: 0600
+    - name: Add SSH config
+      blockinfile:
+        dest: '{{ ssh_home }}/config'
+        create: true
+        mode: 0700
+        marker: "# {mark} ANSIBLE MANAGED BLOCK {{ _aiida_computer.setup_hostname }}"
+        block: |
+          Host {{ _aiida_computer.setup_hostname }}
+            Hostname {{ _aiida_computer.setup_hostname }}
+            User {{ _aiida_computer.config_username }}
+            Port {{ _aiida_computer.config_port }}
+            IdentityFile {{ ssh_home }}/{{ _aiida_computer.setup_label }}.key
+            ForwardAgent yes
+            AddKeysToAgent yes
+          {% if _aiida_computer.config_proxy_hostname is not none %}
+            ProxyCommand ssh {{ _aiida_computer.config_proxy_hostname }} {{ _aiida_computer.config_proxy_netcat }} %h %p
+          {% endif %}
+    # TODO try calling ssh-keyscan if config_host_key is none?
+    - name: Add known host
+      when: _aiida_computer.config_host_key is not none
+      known_hosts:
+        path: '{{ ssh_home }}/known_hosts'
+        name: '{{ _aiida_computer.setup_hostname }}'
+        key: '{{ _aiida_computer.config_host_key }}'
+
+- name: "Configure the computer; '{{ _aiida_computer.setup_label }}'"
+  when: aiida_check_computer_exists.rc != 0 or aiida_check_computer_config.changed
+  shell: |
+    {{ aiida_verdi_exec }} computer configure {{ _aiida_computer.setup_transport }} {{ _aiida_computer.setup_label }} \
+      --non-interactive --config '{{ aiida_templates_folder }}/{{ _aiida_computer.setup_label }}.config.yml'
+
+- name: "Test Connection"
+  when: aiida_check_computer_exists.rc != 0 or aiida_check_computer_config.changed
+  shell: "{{ aiida_verdi_exec }} computer test {{ _aiida_computer.setup_label }}"
+  vars:
+    ansible_command_timeout: 30
+  ignore_errors: true

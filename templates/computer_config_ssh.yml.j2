@@ -1,0 +1,15 @@
+username: "{{ _aiida_computer.config_username }}"
+port: {{ _aiida_computer.config_port }}
+{# key_filename #}
+look_for_keys: {{ _aiida_computer.config_look_for_keys }}
+timeout: {{ _aiida_computer.config_timeout }}
+allow_agent: {{ _aiida_computer.config_allow_agent }}
+compress: {{ _aiida_computer.config_compress }}
+load_system_host_keys: {{ _aiida_computer.config_load_system_host_keys }}
+key_policy: {{ _aiida_computer.config_key_policy }}
+safe_interval: {{ _aiida_computer.config_safe_interval }}
+{% if _aiida_computer.config_proxy_hostname is not none %}
+proxy_command: "ssh {{ _aiida_computer.config_proxy_username }}@{{ _aiida_computer.config_proxy_hostname }} {{ _aiida_computer.config_proxy_netcat }} {{ _aiida_computer.setup_hostname }} {{ _aiida_computer.config_proxy_port }}"
+{% else %}
+proxy_command: null
+{% endif %}

@@ -1,0 +1,53 @@
+---
+aiida_verdi_exec: "verdi"
+aiida_templates_folder: "{{ ansible_user_dir }}/.local/share/aiida"
+
+aiida_user: "{{ ansible_user if ansible_user is defined else lookup('env', 'USER') }}"
+ssh_home: '{{ ansible_user_dir }}/.ssh'
+
+aiida_computer: {}
+
+aiida_computer_defaults:
+  setup_label: local
+  setup_hostname: localhost
+  setup_description: a local host
+  setup_transport: local
+  setup_scheduler: direct
+  setup_shebang: "#!/bin/bash"
+  setup_work_dir: /scratch/{username}/aiida/
+  setup_mpirun_command: mpirun -np {tot_num_mpiprocs}
+  setup_mpiprocs_per_machine: 1
+  setup_prepend_text: "# No prepend text."
+  setup_append_text: "# No append text."
+
+  # local and ssh
+  config_safe_interval: 30.0
+
+  # ssh only
+  config_username: "{{ aiida_user }}"
+  config_port: 22
+  config_look_for_keys: false
+  config_timeout: 60
+  config_allow_agent: true
+  config_compress: true
+  config_load_system_host_keys: true
+  config_key_policy: RejectPolicy
+
+  # local private keys to copy to host,
+  # created using: `ssh-keygen -t rsa -b 4096 -m PEM`
+  # currently they should not have passphrases
+  config_auth_key: null
+  config_proxy_auth_key: null
+
+  # keys to use with: https://docs.ansible.com/ansible/latest/modules/known_hosts_module.html#parameter-key
+  # can be obtained ususally in /etc/ssh/ssh_host_rsa_key.pub, or
+  # ssh-keyscan hostname
+  config_host_key: null
+  config_proxy_host_key: null
+
+  # variables to create proxy command (if hostname not null):
+  config_proxy_hostname: null
+  config_proxy_username: "{{ aiida_user }}"
+  config_proxy_port: 22
+  # This should be an executable available on the proxy server
+  config_proxy_netcat: /usr/bin/netcat

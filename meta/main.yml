@@ -1,0 +1,19 @@
+---
+allow_duplicates: false
+
+galaxy_info:
+  role_name: aiida-computer
+  author: "Chris sewell"
+  # yamllint disable-line rule:line-length
+  description: "An ansible role to create an AiiDA computer"
+  license: MIT
+  min_ansible_version: 2.7
+  platforms:
+    - name: Ubuntu
+      versions:
+        - xenial
+        - bionic
+  galaxy_tags:
+    - ubuntu
+    - application
+    - science

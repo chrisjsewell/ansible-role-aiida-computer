@@ -1,0 +1,23 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+lint: |
+  set -e
+  yamllint .
+  ansible-lint . --exclude=tasks/main.yml
+# TODO handle lint errors raised by ansible-lint (use of shell and handlers)
+platforms:
+  - name: instance
+    image: "${DOCKER_IMAGE:-aiidateam/aiida-core}:${DOCKER_IMAGE_VERSION:-1.2.1}"
+    command: "${DOCKER_COMMAND:-sleep infinity}"
+    privileged: true
+    pre_build_image: true
+    # tty: True
+provisioner:
+  name: ansible
+  playbooks:
+    converge: converge.yml
+  options:
+    v: true
