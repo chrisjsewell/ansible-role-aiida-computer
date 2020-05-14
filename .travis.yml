@@ -8,7 +8,7 @@ services:
 
 env:
   global:
-    - ANSIBLE_ROLE: "aiida-computer"
+    - ANSIBLE_ROLE: "aiida_computer"
 
   matrix:
     - name: aiida-core-1.2.1

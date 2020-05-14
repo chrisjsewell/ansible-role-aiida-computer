@@ -2,7 +2,7 @@
 allow_duplicates: false
 
 galaxy_info:
-  role_name: aiida-computer
+  role_name: aiida_computer
   author: "Chris sewell"
   # yamllint disable-line rule:line-length
   description: "An ansible role to create an AiiDA computer"

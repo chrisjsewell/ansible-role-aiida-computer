@@ -34,7 +34,7 @@
 
   roles:
     - name: Test create local computer
-      role: "chrisjsewell.aiida-computer"
+      role: "chrisjsewell.aiida_computer"
       vars:
         aiida_verdi_exec: /opt/conda/bin/verdi -p default
       # become_user: aiida

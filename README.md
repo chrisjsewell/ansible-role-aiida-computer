@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/chrisjsewell/ansible-role-aiida-computer.svg?branch=master)](https://travis-ci.org/chrisjsewell/ansible-role-aiida-computer)
 
-# Ansible Role: chrisjsewell.aiida-computer
+# Ansible Role: chrisjsewell.aiida_computer
 
 An ansible role that creates an AiiDA computer.
 For SSH transport type computers, this role also sets up a secure connection configuration by:
@@ -18,7 +18,7 @@ It is hoped that this restriction will eventually be removed, which would involv
 
 ## Installation
 
-`ansible-galaxy install chrisjsewell.aiida-computer`
+`ansible-galaxy install chrisjsewell.aiida_computer`
 
 ## Role Variables
 
@@ -32,7 +32,7 @@ Minimal example to set-up a default localhost computer.
 ```yaml
 - hosts: all
   roles:
-  - role: chrisjsewell.aiida-computer
+  - role: chrisjsewell.aiida_computer
     vars:
       aiida_computer:
         setup_label: my_computer
@@ -47,7 +47,7 @@ To set-up an ssh computer (no proxy).
 ```yaml
 - hosts: all
   roles:
-  - role: chrisjsewell.aiida-computer
+  - role: chrisjsewell.aiida_computer
     vars:
       aiida_computer:
         setup_label: ssh_computer
@@ -71,9 +71,9 @@ This role uses [Molecule](https://molecule.readthedocs.io/en/latest/#) and [Dock
 
 After installing [Docker](https://www.docker.com/):
 ```bash
-git clone https://github.com/chrisjsewell/ansible-role-aiida-computer chrisjsewell.aiida-computer
-# Note: folder name chrisjsewell.aiida-computer is required for running tests
-cd chrisjsewell.aiida-computer
+git clone https://github.com/chrisjsewell/ansible-role-aiida-computer chrisjsewell.aiida_computer
+# Note: folder name chrisjsewell.aiida_computer is required for running tests
+cd chrisjsewell.aiida_computer
 pip install -r requirements.txt  # Installs molecule
 molecule test  # runs tests
 ```
